@@ -150,6 +150,67 @@ function autocomplete(bufPane)
   return true
 end
 
+local function copyLoc(loc)
+  local table = {}
+  table["X"] = loc.X
+  table["Y"] = loc.Y
+  return table
+end
+
+local function gotoNextLink(bufPane, down)
+  local match, found, err = bufPane.Buf:FindNext(
+    "\\[\\[(.*?)\\]\\]", 
+    bufPane.Buf:Start(), 
+    bufPane.Buf:End(),
+    -- needs copyLoc or throws
+    -- bad argument #5 to FindNext (cannot use &{16 3} (type *buffer.Loc) as type buffer.Loc)
+    copyLoc(bufPane.Cursor.Loc),
+    down,
+    true
+  )
+  if err ~= nil then
+    micro.InfoBar():Error(err)
+    return false
+  end
+  if found == false then
+    return false
+  end
+
+  local loc = copyLoc(match[2])
+  -- move cursor to the end of link accounting for "]]"
+  loc["X"] = loc.X - 2
+  bufPane.Cursor:GotoLoc(loc)
+  return true
+end
+
+-- go to next wiki link
+function preInsertTab(bufPane)
+  local link = getWikiLink(bufPane)
+  if link == nil then
+    return true
+  end
+  
+  if gotoNextLink(bufPane, true) then
+    micro.InfoBar():Message("Wiki: Go to next link")
+  end
+
+  return false
+end
+
+-- go to previous wiki link
+function preOutdentLine(bufPane)
+  local link = getWikiLink(bufPane)
+  if link == nil then
+    return true
+  end
+  
+  if gotoNextLink(bufPane, false) then
+    micro.InfoBar():Message("Wiki: Go to previus link")
+  end
+
+  return false
+end
+
 function onBufPaneOpen(bufPane)
   -- necessary for micro to apply wiki link syntax
   bufPane.Buf:UpdateRules()
