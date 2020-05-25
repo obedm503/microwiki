@@ -1,0 +1,33 @@
+filetype: markdown
+
+rules:
+    # extends markdown
+  - include: "markdown"
+
+    # [[link]]
+  - constant: "\\[\\[[^]]*\\]\\]"
+
+    # add support for common languages
+  - default: 
+      start: "^```go$"
+      end: "^```$"
+      rules:
+          - include: "go"
+
+  - default: 
+      start: "^```lua$"
+      end: "^```$"
+      rules:
+          - include: "lua"
+
+  - default: 
+      start: "```[tj]s"
+      end: "^```$"
+      rules:
+          - include: "typescript"
+
+  - default: 
+      start: "^```(rust|rs)$"
+      end: "^```$"
+      rules:
+          - include: "rust"
