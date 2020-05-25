@@ -17,6 +17,8 @@ Like [vimwiki](https://github.com/vimwiki/vimwiki) but for [micro](https://githu
   suggest files and directories at `<current dir>/`. If the wiki link is
   `[[Class notes]]`, it will suggest files and directories at
   `<current dir>/Class notes/`.
+- `Tab`: When inside a wiki link, go to next wiki link.
+- `Shift-Tab`: When inside a wiki link, go to previous wiki link.
 
 ## Useful links
 
