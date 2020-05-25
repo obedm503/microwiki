@@ -20,6 +20,11 @@ Like [vimwiki](https://github.com/vimwiki/vimwiki) but for [micro](https://githu
 - `Tab`: When inside a wiki link, go to next wiki link.
 - `Shift-Tab`: When inside a wiki link, go to previous wiki link.
 
+## TODO
+
+- File management commands like remove (`wd` or `rm`) and rename (`wr` or `rn`)?
+- `Shift-Alt-Enter`: Vertical split and follow wiki link?
+
 ## Useful links
 
 Links might be useful for plugin development.
