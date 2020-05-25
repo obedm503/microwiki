@@ -1,3 +1,5 @@
+VERSION = "1.0.0"
+
 local micro = import("micro")
 local config = import("micro/config")
 local filepath = import("path/filepath")

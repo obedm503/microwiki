@@ -1,0 +1,17 @@
+[
+  {
+    "Name": "microwiki",
+    "Description": "Like vimwiki but for micro",
+    "Tags": ["wiki", "vimwiki", "notes", "zettelkasten", "knowledge"],
+    "Website": "https://github.com/obedm503/microwiki",
+    "Versions": [
+      {
+        "Version": "1.0.0",
+        "Url": "https://github.com/obedm503/microwiki/archive/v1.0.0.zip",
+        "Require": {
+          "micro": ">=2.0.4"
+        }
+      }
+    ]
+  }
+]

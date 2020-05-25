@@ -1,6 +1,6 @@
 # microwiki help
 
-See [obedm503/microwiki](https://github.com/obedm503/microwiki) for more.
+See [obedm503/microwiki](https://github.com/obedm503/microwiki) for more
 
 ## Keybindings
 
