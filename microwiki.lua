@@ -22,38 +22,32 @@ local function getWikiLink(bufPane)
 
   local startCol = nil
   for i = colNo, 1, -1 do
-    local chunk = line:sub(i-1, i)
+    local chunk = line:sub(i - 1, i)
     if chunk == "[[" then
-      startCol = i+1
+      startCol = i + 1
       break
     end
   end
-  if startCol == nil then
-    return nil
-  end
-  
+  if startCol == nil then return nil end
+
   local endCol = nil
   for i = colNo, line:len(), 1 do
-    local chunk = line:sub(i+1, i+2)
+    local chunk = line:sub(i + 1, i + 2)
     if chunk == "]]" then
       endCol = i
       break
     end
   end
-  if endCol == nil then
-    return nil
-  end
-  
+  if endCol == nil then return nil end
+
   return line:sub(startCol, endCol)
 end
 
 local function getWikiFile(bufPane)
   local link = getWikiLink(bufPane)
   -- do not go to dir/
-  if link == nil or link:sub(-1) == "/" then
-    return nil
-  end
-  return link .. ".md"
+  if link == nil or link:sub(-1) == "/" then return nil end
+  return link .. ".mwiki"
 end
 
 local function getLocalDir(absolutePath)
@@ -69,13 +63,11 @@ end
 function go(bufPane)
   local file = getWikiFile(bufPane)
   local dir = getLocalDir(bufPane.Buf.AbsPath)
-  if file == nil or dir == nil then
-    return true
-  end
-  
+  if file == nil or dir == nil then return true end
+
   bufPane:Save()
   local filePath = filepath.Join(dir, file)
-  bufPane:HandleCommand("tab \"" .. filePath .. "\"")  
+  bufPane:HandleCommand("tab \"" .. filePath .. "\"")
   micro.InfoBar():Message("Wiki: Open \"" .. filePath .. "\"")
 
   return false
@@ -83,9 +75,7 @@ end
 
 function back(bufPane)
   local dir = getLocalDir(bufPane.Buf.AbsPath)
-  if dir == nil then
-    return true
-  end
+  if dir == nil then return true end
 
   bufPane:Save()
   bufPane:Quit()
@@ -96,10 +86,8 @@ end
 
 function autocomplete(bufPane)
   local link = getWikiLink(bufPane)
-  if link == nil then
-    return false
-  end
-  
+  if link == nil then return false end
+
   -- move cursor to end of link
   local colNo = bufPane.Cursor.X
   local line = bufPane.Buf:Line(bufPane.Cursor.Y)
@@ -115,9 +103,7 @@ function autocomplete(bufPane)
   end
 
   local localDir = getLocalDir(bufPane.Buf.AbsPath)
-  if localDir == nil then
-    localDir = dir
-  end
+  if localDir == nil then localDir = dir end
   micro.InfoBar():Message("Wiki: List \"" .. localDir .. "\"")
 
   local files, err = ioutil.ReadDir(dir)
@@ -143,9 +129,7 @@ function autocomplete(bufPane)
     end
   end
 
-  bufPane.Buf:Autocomplete(function(buf)
-    return names, names
-  end)
+  bufPane.Buf:Autocomplete(function(buf) return names, names end)
 
   return true
 end
@@ -158,23 +142,18 @@ local function copyLoc(loc)
 end
 
 local function gotoNextLink(bufPane, down)
-  local match, found, err = bufPane.Buf:FindNext(
-    "\\[\\[(.*?)\\]\\]", 
-    bufPane.Buf:Start(), 
-    bufPane.Buf:End(),
-    -- needs copyLoc or throws
-    -- bad argument #5 to FindNext (cannot use &{16 3} (type *buffer.Loc) as type buffer.Loc)
-    copyLoc(bufPane.Cursor.Loc),
-    down,
-    true
-  )
+  local match, found, err = bufPane.Buf:FindNext("\\[\\[(.*?)\\]\\]",
+                                                 bufPane.Buf:Start(),
+                                                 bufPane.Buf:End(),
+  -- needs copyLoc or throws
+  -- bad argument #5 to FindNext (cannot use &{16 3} (type *buffer.Loc) as type buffer.Loc)
+                                                 copyLoc(bufPane.Cursor.Loc),
+                                                 down, true)
   if err ~= nil then
     micro.InfoBar():Error(err)
     return false
   end
-  if found == false then
-    return false
-  end
+  if found == false then return false end
 
   local loc = copyLoc(match[2])
   -- move cursor to the end of link accounting for "]]"
@@ -186,10 +165,8 @@ end
 -- go to next wiki link
 function preInsertTab(bufPane)
   local link = getWikiLink(bufPane)
-  if link == nil then
-    return true
-  end
-  
+  if link == nil then return true end
+
   if gotoNextLink(bufPane, true) then
     micro.InfoBar():Message("Wiki: Go to next link")
   end
@@ -200,10 +177,8 @@ end
 -- go to previous wiki link
 function preOutdentLine(bufPane)
   local link = getWikiLink(bufPane)
-  if link == nil then
-    return true
-  end
-  
+  if link == nil then return true end
+
   if gotoNextLink(bufPane, false) then
     micro.InfoBar():Message("Wiki: Go to previus link")
   end
@@ -216,6 +191,76 @@ function onBufPaneOpen(bufPane)
   bufPane.Buf:UpdateRules()
 end
 
+-- local function fileMatches(absolutePath)
+--     local dir, file = filepath.Split(absolutePath)
+--     return file == "todo"
+-- end
+
+local function loc(x, y)
+  local table = {}
+  table["X"] = x
+  table["Y"] = y
+  return table
+end
+
+local function indexOf(arr, char)
+  for i = 1, #arr do if arr[i] == char then return i end end
+  return nil
+end
+
+local checkmarks = {"-", "+", "x"}
+
+local function getNextCheckmark(index)
+  if index == 1 then
+    return checkmarks[2]
+  elseif index == 2 then
+    return checkmarks[3]
+  else
+    return checkmarks[1]
+  end
+end
+
+local function insertString(bufPane, str)
+  local rune, runeSize = utf8.DecodeRuneInString(str)
+  bufPane:DoRuneInsert(rune)
+end
+
+local function isTodo(first)
+  for i = 1, #checkmarks do
+    local checkmark = checkmarks[i]
+    if first == checkmark then return true end
+  end
+  return false
+end
+
+function checkmark(bufPane)
+  -- if fileMatches(bufPane.Buf.AbsPath) == false then return false end
+
+  local lineNo = bufPane.Cursor.Y
+  local line = bufPane.Buf:Line(lineNo)
+  local first = line:sub(1, 1)
+  -- if isTodo(first) == false then return false end
+
+  local index = indexOf(checkmarks, first)
+  local nextCheckmark = getNextCheckmark(index)
+
+  local colNo = bufPane.Cursor.X
+  -- move to beginning
+  bufPane.Cursor:Start()
+  -- delete one character
+  bufPane:Delete()
+  insertString(bufPane, nextCheckmark)
+  -- return cursor to prev position
+  bufPane.Cursor:GotoLoc(loc(colNo, lineNo))
+
+  return true
+end
+
+function onBufPaneOpen(bufPane)
+  -- necessary for micro to apply syntax
+  bufPane.Buf:UpdateRules()
+end
+
 function init()
   -- used when creating newdir/newfile
   config.SetGlobalOption("mkparents", "true")
@@ -225,16 +270,19 @@ function init()
   -- extend markdown to include [[wikilink]] syntax
   config.AddRuntimeFile("microwiki", config.RTSyntax, "microwiki.yaml")
   config.AddRuntimeFile("microwiki", config.RTHelp, "help/microwiki.md")
-  
+
   -- necessary for micro to load syntax file
   config.Reload()
-  
-  -- open [[link]].md in new tab
+
+  -- open [[link]].mwiki in new tab
   config.TryBindKey("Alt-Enter", "lua:microwiki.go", false)
-  
+
   -- save and close tab
   config.TryBindKey("Alt-Backspace", "lua:microwiki.back", false)
-  
+
   -- activate autocomplete
   config.TryBindKey("Ctrl-Space", "lua:microwiki.autocomplete", false)
+
+  -- open cycle through checkmarks in new tab
+  config.TryBindKey("Alt-x", "lua:microwiki.checkmark", false)
 end

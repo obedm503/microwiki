@@ -1,9 +1,9 @@
-filetype: markdown
+filetype: microwiki
+
+detect:
+  filename: "\\.mwiki$"
 
 rules:
-  # extends markdown
-  - include: "markdown"
-
   # [[link]]
   - constant: "\\[\\[[^]]*\\]\\]"
 
@@ -31,3 +31,20 @@ rules:
       end: "^```$"
       rules:
         - include: "rust"
+
+    # notes
+  - type: "^! .*"
+    # headlines
+  - special: "^# .*"
+    # todo
+  - diff-modified: "^- "
+    # finished todos (greyed out)
+  - underlined: "^[x+] .*"
+    # done todo
+  - diff-added: "^\\+ "
+    # cancelled todo
+  - diff-deleted: "^x "
+    # dates
+  - constant: "\\[[^]]+\\]"
+    # urls
+  - underlined: "https?://[^ )>]+"
