@@ -18,6 +18,13 @@
         "Require": {
           "micro": ">=2.0.4"
         }
+      },
+      {
+        "Version": "1.2.0",
+        "Url": "https://github.com/obedm503/microwiki/archive/v1.2.0.zip",
+        "Require": {
+          "micro": ">=2.0.4"
+        }
       }
     ]
   }
